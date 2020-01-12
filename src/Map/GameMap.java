@@ -1,10 +1,9 @@
 package Map;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import Visualization.GameGUI;
+import Visualization.IMapObserver;
+
+import java.util.*;
 
 public class  GameMap {
 
@@ -14,6 +13,8 @@ public class  GameMap {
 
     private ArrayList<List<Vector2D>> playerTiles;
     private int [] playersTileCount;
+    private int playerCount;
+
     private GameTile [][] tiles;
 
     public GameMap(int width,int height, int playerQuantity, double obstacleRatio) {
@@ -29,6 +30,7 @@ public class  GameMap {
             }
         }
 
+        this.playerCount = playerQuantity;
         this.playersTileCount = new int[playerQuantity];
         this.playerTiles =  new ArrayList<>(playerQuantity);
 
@@ -49,15 +51,24 @@ public class  GameMap {
     }
     public void addObserver(IMapObserver observer) {
         this.observerList.add(observer);
+        if (observer instanceof GameGUI) {
+            for (int i = 0; i < this.getWidth(); i++) {
+                for (int j = 0; j < this.getHeight(); j++) {
+                    if (this.tiles[i][j].isObstacle()) {
+                        ((GameGUI) observer).occupiedTile(new Vector2D(i,j));
+                    }
+                }
+            }
+        }
     }
 
     public void removeObserver(IMapObserver observer) {
         observerList.remove(observer);
     }
 
-    private void positionChanged(Vector2D oldPosition) {
+    private void positionChanged(Vector2D position, int player) {
         for (IMapObserver x : observerList) {
-            x.positionChanged( );
+            x.positionChanged(position, player);
         }
     }
 
@@ -67,6 +78,7 @@ public class  GameMap {
             if (tiles[newPosition.x][newPosition.y].occupy(player)) {
                 playersTileCount[player]++;
                 playerTiles.get(player).add(newPosition);
+                positionChanged(square,player);
             }
         }
         if (inMap(square.add(MapDirection.EAST.toUnitVector()))) {
@@ -74,6 +86,8 @@ public class  GameMap {
             if (tiles[newPosition.x][newPosition.y].occupy(player)) {
                 playersTileCount[player]++;
                 playerTiles.get(player).add(newPosition);
+                positionChanged(square,player);
+
             }
         }
         if (inMap(square.add(MapDirection.SOUTH.toUnitVector()))) {
@@ -81,6 +95,8 @@ public class  GameMap {
             if (tiles[newPosition.x][newPosition.y].occupy(player)) {
                 playersTileCount[player]++;
                 playerTiles.get(player).add(newPosition);
+                positionChanged(square,player);
+
             }
         }
         if (inMap(square.add(MapDirection.WEST.toUnitVector()))) {
@@ -88,12 +104,13 @@ public class  GameMap {
             if (tiles[newPosition.x][newPosition.y].occupy(player)) {
                 playersTileCount[player]++;
                 playerTiles.get(player).add(newPosition);
+                positionChanged(square,player);
+
             }
         }
     }
 
     private void expandTerritory(int player) {
-
         LinkedList<Vector2D> tilesToRemove = new LinkedList<>();
 
         this.playerTiles.get(player).forEach(k -> {
@@ -104,9 +121,39 @@ public class  GameMap {
         tilesToRemove.forEach(k -> this.playerTiles.get(player).remove(k));
     }
 
+    public void makeSingleTurn() {
+        List<Integer> playerOrder = new ArrayList<>(this.playerCount);
+        for (int i = 0; i < this.playerCount; i++) {
+            playerOrder.add(i);
+        }
+        Collections.shuffle(playerOrder);
+
+        playerOrder.forEach(k -> expandTerritory(k));
+    }
+
+    public boolean isGameFinished() {
+        boolean finished = true;
+
+        for (List<Vector2D> k : playerTiles) {
+            if (k.size() != 0) finished=false;
+        }
+
+        return finished;
+    }
+
+    public int getWidth() {
+        return this.rightUpperCorner.x+1;
+    }
+
+    public int getHeight() {
+        return this.rightUpperCorner.y+1;
+    }
+
+
     public void placePlayer(Vector2D playerPosition, int playerNumber) {
         this.playersTileCount[playerNumber]++;
         this.playerTiles.get(playerNumber).add(playerPosition);
+        positionChanged(playerPosition, playerNumber);
     }
 
     private boolean inMap(Vector2D position) {

@@ -23,6 +23,7 @@ public class GameGUI implements IMapObserver{
     @Override
     public void positionChanged(Vector2D position, int player) {
 
+
         Tile tile1 = new Tile(1200 / this.map.getWidth(), 800 / this.map.getHeight(), playerToColor(player));
         tile1.setTranslateX(position.x * 1200 / this.map.getWidth());
         tile1.setTranslateY(position.y * 800 / this.map.getHeight());
@@ -67,9 +68,9 @@ public class GameGUI implements IMapObserver{
         for (int i = 0; i < this.map.getWidth(); i++) {
             for (int j = 0; j < this.map.getHeight(); j++) {
                 Tile tile;
-                tile = new Tile(800 / this.map.getWidth(), 800 / this.map.getHeight(), Color.WHITE);
+                tile = new Tile(1200 / this.map.getWidth(), 800 / this.map.getHeight(), Color.WHITE);
 
-                tile.setTranslateX(i * 800 / this.map.getWidth());
+                tile.setTranslateX(i * 1200 / this.map.getWidth());
                 tile.setTranslateY(j * 800 / this.map.getHeight());
                 root.getChildren().add(tile);
             }

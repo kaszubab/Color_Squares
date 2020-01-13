@@ -10,7 +10,7 @@ public class   GameTile {
     public GameTile() {
 
         this.obstacle = false;
-        this.occupiedByPlayer = 0;
+        this.occupiedByPlayer = -1;
     }
 
     public boolean isObstacle() {
@@ -22,11 +22,11 @@ public class   GameTile {
     }
 
     private boolean isOccupied () {
-        return this.occupiedByPlayer != 0;
+        return this.occupiedByPlayer != -1;
     }
 
     public boolean occupy (int player) {
-        if (!this.isOccupied()) {
+        if (!this.isObstacle() && !this.isOccupied()) {
             this.occupiedByPlayer = player;
             return true;
         }

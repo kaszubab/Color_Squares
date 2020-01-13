@@ -35,6 +35,15 @@ public class GameGUI implements IMapObserver{
         return root;
     }
 
+    public boolean insertPlayerAtPosition(double x, double y, int playerNumber) {
+        int widthX = (int) Math.floor(x / (1200 / this.map.getWidth()) );
+        int widthY = (int) Math.floor(y / (800 / this.map.getHeight()) );
+
+        return this.map.placePlayer(new Vector2D(widthX, widthY), playerNumber);
+
+    }
+
+
     private Color playerToColor(int player) {
         switch (player) {
             case 0:

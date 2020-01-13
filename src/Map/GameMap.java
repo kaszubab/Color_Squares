@@ -153,10 +153,15 @@ public class  GameMap {
     }
 
 
-    public void placePlayer(Vector2D playerPosition, int playerNumber) {
-        this.playersTileCount[playerNumber]++;
-        this.playerTiles.get(playerNumber).add(playerPosition);
-        positionChanged(playerPosition, playerNumber);
+    public boolean placePlayer(Vector2D playerPosition, int playerNumber) {
+        if (this.tiles[playerPosition.x][playerPosition.y].occupy(playerNumber)) {
+            this.playersTileCount[playerNumber]++;
+            this.playerTiles.get(playerNumber).add(playerPosition);
+            positionChanged(playerPosition, playerNumber);
+            return true;
+        }
+
+        return false;
     }
 
     private boolean inMap(Vector2D position) {

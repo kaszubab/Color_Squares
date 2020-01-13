@@ -4,9 +4,11 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
@@ -30,6 +32,7 @@ public class Game extends Application {
 
 
     GameMap map;
+    private int currentPlayer;
 
     private Timeline timeline1 = new Timeline();
 
@@ -82,7 +85,9 @@ public class Game extends Application {
                             Double.parseDouble(field4.getText()), root);
 
                     timeline1.setCycleCount(Timeline.INDEFINITE);
+
                     timeline1.play();
+
 
 
                 }
@@ -102,33 +107,6 @@ public class Game extends Application {
         initialStage.show();
 
 
-
-
-
-
-
-    }
-
-
-    private class MyTimer extends AnimationTimer {
-
-        private long time;
-
-        @Override
-        public void handle(long now) {
-
-            if(now - time  >= 1000L) {
-                time = now;
-                doHandle();
-
-            }
-
-        }
-
-        private void doHandle() {
-            map.makeSingleTurn();
-            System.out.println("dzialam");
-        }
     }
 
 
@@ -140,12 +118,9 @@ public class Game extends Application {
         this.map = map;
         GameGUI GUI = new GameGUI(map);
 
-        map.placePlayer(new Vector2D(0,0), 0);
-        map.placePlayer(new Vector2D(10,0), 1);
-        map.placePlayer(new Vector2D(0,10), 2);
-        map.placePlayer(new Vector2D(10,10), 3);
+        root = GUI.getVisualization( );
 
-        root = GUI.getVisualization();
+
 
         AtomicInteger counter1 = new AtomicInteger();
 
@@ -154,14 +129,33 @@ public class Game extends Application {
         timeline1 = new Timeline(new KeyFrame(javafx.util.Duration.seconds(0.5), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                map.makeSingleTurn();
-                if (map.isGameFinished()) timeline1.stop();
+                if (currentPlayer == playerQuantity) {
+                    map.makeSingleTurn();
+                    if (map.isGameFinished()) timeline1.stop();
+                }
             }
         }));
 
         Stage oneGenerator = new Stage();
 
         oneGenerator.setScene(new Scene(root));
+
+        root.setOnMouseClicked(new EventHandler<MouseEvent>() {
+            @Override
+            public void handle(MouseEvent event) {
+                double x = event.getSceneX();
+                double y = event.getSceneY();
+
+                if (!GUI.insertPlayerAtPosition(x, y, currentPlayer)) {
+                    oneGenerator.setTitle("Wrong position");
+                }
+                else {
+                        currentPlayer++;
+                }
+
+            }
+        });
+
         oneGenerator.show();
 
         return timeline1;

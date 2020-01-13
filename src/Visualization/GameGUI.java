@@ -44,7 +44,7 @@ public class GameGUI implements IMapObserver{
     }
 
 
-    private Color playerToColor(int player) {
+    public Color playerToColor(int player) {
         switch (player) {
             case 0:
                 return Color.RED;

@@ -1,10 +1,9 @@
 import Visualization.GameGUI;
-import javafx.animation.AnimationTimer;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
+import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.TextField;
@@ -12,12 +11,14 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.media.AudioClip;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.scene.control.Button;
-import Map.Vector2D;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.util.*;
+
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 import Map.GameMap;
@@ -31,8 +32,9 @@ public class Game extends Application {
     }
 
 
-    GameMap map;
     private int currentPlayer;
+
+    private GameSettings game;
 
     private Timeline timeline1 = new Timeline();
 
@@ -67,9 +69,16 @@ public class Game extends Application {
         TextField field4 = new TextField();
         field4.setPromptText("Set percentage of obstacles");
 
+        HBox hb = new HBox();
+        hb.setPrefWidth(box1.getPrefWidth());
+
         Button button1 = new Button();
-        button1.setPrefSize(box1.getPrefWidth(), 100);
-        button1.setText("Submit");
+        button1.setPrefSize(box1.getPrefWidth()/2, 100);
+        button1.setText("Play Normal Game");
+
+        Button button2 = new Button();
+        button2.setPrefSize(box1.getPrefWidth()/2, 100);
+        button2.setText("Play Randomized Game");
 
         button1.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -79,10 +88,16 @@ public class Game extends Application {
                         && (field3.getText() != null && !field3.getText().isEmpty())
                         && (field4.getText() != null && !field4.getText().isEmpty())
                         ) {
+
                     initialStage.close();
-                    Timeline timeline1 = initMap(Integer.parseInt(field2.getText()),
-                            Integer.parseInt(field3.getText()), Integer.parseInt(field1.getText()),
-                            Double.parseDouble(field4.getText()), root);
+
+                    game = new GameSettings(Integer.parseInt(field1.getText()),
+                            Integer.parseInt(field2.getText()),
+                            Integer.parseInt(field3.getText()),
+                            Double.parseDouble(field4.getText()),
+                            false);
+
+                    Timeline timeline1 = initMap(game, root);
 
                     timeline1.setCycleCount(Timeline.INDEFINITE);
 
@@ -94,11 +109,46 @@ public class Game extends Application {
             }
         });
 
+
+        button2.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                if ((field1.getText() != null && !field1.getText().isEmpty())
+                        && (field2.getText() != null && !field2.getText().isEmpty())
+                        && (field3.getText() != null && !field3.getText().isEmpty())
+                        && (field4.getText() != null && !field4.getText().isEmpty())
+                        ) {
+
+                    initialStage.close();
+
+                    game = new GameSettings(Integer.parseInt(field1.getText()),
+                            Integer.parseInt(field2.getText()),
+                            Integer.parseInt(field3.getText()),
+                            Double.parseDouble(field4.getText()),
+                            true);
+
+                    Timeline timeline1 = initMap(game, root);
+
+                    timeline1.setCycleCount(Timeline.INDEFINITE);
+
+                    timeline1.play();
+
+
+
+                }
+            }
+        });
+
+
+
+        hb.getChildren().add(button1);
+        hb.getChildren().add(button2);
+
         box1.getChildren().add(field1);
         box1.getChildren().add(field2);
         box1.getChildren().add(field3);
         box1.getChildren().add(field4);
-        box1.getChildren().add(button1);
+        box1.getChildren().add(hb);
 
         root.getChildren().add(box1);
 
@@ -111,11 +161,10 @@ public class Game extends Application {
 
 
 
-    private Timeline initMap(int width, int height, int playerQuantity, double obstacleRatio, Pane root) {
+    private Timeline initMap(GameSettings game, Pane root) {
 
-        GameMap map = new GameMap(width, height, playerQuantity, obstacleRatio);
+        GameMap map = new GameMap(game.mapWidth, game.mapHeight, game.playerCount, game.obstacleRatio);
 
-        this.map = map;
         GameGUI GUI = new GameGUI(map);
 
         root = GUI.getVisualization( );
@@ -125,18 +174,29 @@ public class Game extends Application {
         AtomicInteger counter1 = new AtomicInteger();
 
 
+        Stage oneGenerator = new Stage();
+
 
         timeline1 = new Timeline(new KeyFrame(javafx.util.Duration.seconds(0.5), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if (currentPlayer == playerQuantity) {
+
+                if (currentPlayer == game.playerCount) {
+
                     map.makeSingleTurn();
-                    if (map.isGameFinished()) timeline1.stop();
+
+                    if (map.isGameFinished()) {
+
+                        timeline1.stop();
+
+
+                        scoreScene(map, oneGenerator, GUI);
+
+                    }
                 }
             }
         }));
 
-        Stage oneGenerator = new Stage();
 
         oneGenerator.setScene(new Scene(root));
 
@@ -156,9 +216,84 @@ public class Game extends Application {
             }
         });
 
+
         oneGenerator.show();
 
         return timeline1;
+    }
+
+
+    private void scoreScene(GameMap map, Stage gameStage, GameGUI GUI) {
+
+        Pane root = new Pane();
+        root.setPrefSize(400, 300);
+
+        Stage newStage = new Stage();
+        newStage.setTitle("Scores");
+
+
+        VBox box1 = new VBox();
+        box1.setPrefWidth(root.getPrefWidth());
+
+
+        box1.setSpacing(20);
+
+        for (int i = 0; i < currentPlayer; i++) {
+            Text field1 = new Text();
+            field1.setText("Player " + i + " : " + map.getPlayerTilesCount(i));
+            field1.setFont(Font.font("Comic Sans",20));
+            field1.setFill(GUI.playerToColor(i));
+            box1.getChildren().add(field1);
+        }
+
+        Button button1 = new Button();
+        button1.setPrefSize(box1.getPrefWidth(), 100);
+        button1.setText("Replay");
+
+
+        button1.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+
+                gameStage.close();
+                newStage.close();
+
+                currentPlayer = 0;
+
+                Timeline timeline1 = initMap(game, root);
+
+                timeline1.setCycleCount(Timeline.INDEFINITE);
+
+                timeline1.play();
+
+            }
+        });
+
+        box1.getChildren().add(button1);
+
+        root.getChildren().add(box1);
+
+
+        newStage.setScene(new Scene(root));
+        newStage.show();
+
+    }
+
+    private class GameSettings {
+
+        public int playerCount;
+        public int mapWidth;
+        public int mapHeight;
+        public double obstacleRatio;
+        public boolean randomized;
+
+        GameSettings(int pC, int W, int H, double O, boolean randomized) {
+            this.playerCount = pC;
+            this.mapWidth = W;
+            this.mapHeight = H;
+            this.obstacleRatio = O;
+            this.randomized = randomized;
+        }
     }
 
 }

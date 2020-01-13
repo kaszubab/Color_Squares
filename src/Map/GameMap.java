@@ -108,6 +108,50 @@ public class  GameMap {
         }
     }
 
+    private void colorRandomNeighbouringSquares(Vector2D square, int player, LinkedList<Vector2D> tilesToAdd) {
+
+        boolean canExpand = false;
+
+        for (int i = 0; i < 4; i++) {
+
+        }
+
+        if (inMap(square.add(MapDirection.NORTH.toUnitVector()))) {
+            Vector2D newPosition = square.add(MapDirection.NORTH.toUnitVector());
+            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
+                playersTileCount[player]++;
+                positionChanged(newPosition,player);
+                tilesToAdd.add(newPosition);
+            }
+        }
+        if (inMap(square.add(MapDirection.EAST.toUnitVector()))) {
+            Vector2D newPosition = square.add(MapDirection.EAST.toUnitVector());
+            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
+                playersTileCount[player]++;
+                positionChanged(newPosition,player);
+                tilesToAdd.add(newPosition);
+            }
+        }
+        if (inMap(square.add(MapDirection.SOUTH.toUnitVector()))) {
+            Vector2D newPosition = square.add(MapDirection.SOUTH.toUnitVector());
+            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
+                playersTileCount[player]++;
+                positionChanged(newPosition,player);
+                tilesToAdd.add(newPosition);
+            }
+        }
+        if (inMap(square.add(MapDirection.WEST.toUnitVector()))) {
+            Vector2D newPosition = square.add(MapDirection.WEST.toUnitVector());
+            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
+                playersTileCount[player]++;
+                positionChanged(newPosition,player);
+                tilesToAdd.add(newPosition);
+            }
+        }
+    }
+
+
+
     private void expandTerritory(int player) {
         LinkedList<Vector2D> tilesToAdd = new LinkedList<>();
 
@@ -120,6 +164,21 @@ public class  GameMap {
         tilesToAdd.forEach(k -> this.playerTiles.get(player).add(k));
     }
 
+    private void expandTerritoryAtRandom(int player) {
+        LinkedList<Vector2D> tilesToAdd = new LinkedList<>();
+
+        this.playerTiles.get(player).forEach(k -> {
+            colorNeighbouringSquares(k, player, tilesToAdd);
+        });
+
+        tilesToAdd.forEach(k -> this.playerTiles.get(player).add(k));
+
+
+    }
+
+
+
+
     public void makeSingleTurn() {
         List<Integer> playerOrder = new ArrayList<>(this.playerCount);
         for (int i = 0; i < this.playerCount; i++) {
@@ -131,8 +190,24 @@ public class  GameMap {
             expandTerritory(playerOrder.get(i));
         }
 
+    }
+
+    public void makeSingleRandomTurn() {
+        List<Integer> playerOrder = new ArrayList<>(this.playerCount);
+        for (int i = 0; i < this.playerCount; i++) {
+            playerOrder.add(i);
+        }
+        Collections.shuffle(playerOrder);
+
+        for (int i = 0; i < this.playerCount; i++) {
+            expandTerritoryAtRandom(playerOrder.get(i));
+        }
 
     }
+
+
+
+
 
     public boolean isGameFinished() {
         boolean finished = true;
@@ -150,6 +225,10 @@ public class  GameMap {
 
     public int getHeight() {
         return this.rightUpperCorner.y+1;
+    }
+
+    public int getPlayerTilesCount(int player) {
+        return this.playersTileCount[player];
     }
 
 

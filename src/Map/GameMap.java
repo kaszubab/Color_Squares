@@ -110,44 +110,32 @@ public class  GameMap {
 
     private void colorRandomNeighbouringSquares(Vector2D square, int player, LinkedList<Vector2D> tilesToAdd) {
 
-        boolean canExpand = false;
+        ArrayList<Integer> toOccupy = new ArrayList<>();
 
         for (int i = 0; i < 4; i++) {
+            if (inMap(square.add(MapDirection.intToMapDirection(i).toUnitVector()))) {
+                Vector2D newPosition = square.add(MapDirection.intToMapDirection(i).toUnitVector());
+                if (!tiles[newPosition.x][newPosition.y].isObstacle() && !tiles[newPosition.x][newPosition.y].isOccupied()) {
+                    toOccupy.add(i);
+                }
+            }
+        }
 
-        }
+        if (toOccupy.size() == 0) return;
 
-        if (inMap(square.add(MapDirection.NORTH.toUnitVector()))) {
-            Vector2D newPosition = square.add(MapDirection.NORTH.toUnitVector());
-            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
-                playersTileCount[player]++;
-                positionChanged(newPosition,player);
-                tilesToAdd.add(newPosition);
-            }
-        }
-        if (inMap(square.add(MapDirection.EAST.toUnitVector()))) {
-            Vector2D newPosition = square.add(MapDirection.EAST.toUnitVector());
-            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
-                playersTileCount[player]++;
-                positionChanged(newPosition,player);
-                tilesToAdd.add(newPosition);
-            }
-        }
-        if (inMap(square.add(MapDirection.SOUTH.toUnitVector()))) {
-            Vector2D newPosition = square.add(MapDirection.SOUTH.toUnitVector());
-            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
-                playersTileCount[player]++;
-                positionChanged(newPosition,player);
-                tilesToAdd.add(newPosition);
-            }
-        }
-        if (inMap(square.add(MapDirection.WEST.toUnitVector()))) {
-            Vector2D newPosition = square.add(MapDirection.WEST.toUnitVector());
-            if (tiles[newPosition.x][newPosition.y].occupy(player)) {
-                playersTileCount[player]++;
-                positionChanged(newPosition,player);
-                tilesToAdd.add(newPosition);
-            }
-        }
+        Random rand = new Random();
+        int direction = rand.nextInt(toOccupy.size());
+
+
+        playersTileCount[player]++;
+
+        Vector2D newPosition = square.add(MapDirection.intToMapDirection(toOccupy.get(direction)).toUnitVector());
+
+        tiles[newPosition.x][newPosition.y].occupy(player);
+        positionChanged(newPosition,player);
+        tilesToAdd.add(newPosition);
+
+
     }
 
 
@@ -168,11 +156,34 @@ public class  GameMap {
         LinkedList<Vector2D> tilesToAdd = new LinkedList<>();
 
         this.playerTiles.get(player).forEach(k -> {
-            colorNeighbouringSquares(k, player, tilesToAdd);
+            colorRandomNeighbouringSquares(k, player, tilesToAdd);
         });
 
         tilesToAdd.forEach(k -> this.playerTiles.get(player).add(k));
 
+        LinkedList<Vector2D> tilesToDelete = new LinkedList<>();
+
+        this.playerTiles.get(player).forEach(k -> {
+            boolean toDelete = true;
+
+            for (int i = 0; i < 4; i++) {
+                if (inMap(k.add(MapDirection.intToMapDirection(i).toUnitVector()))) {
+                    Vector2D newPosition = k.add(MapDirection.intToMapDirection(i).toUnitVector());
+                    if (!tiles[newPosition.x][newPosition.y].isObstacle() && !tiles[newPosition.x][newPosition.y].isOccupied()) {
+                        toDelete = false;
+                        break;
+                    }
+                }
+            }
+
+            if(toDelete)
+            {
+                tilesToDelete.add(k);
+            }
+
+        });
+
+        tilesToDelete.forEach(k -> this.playerTiles.get(player).remove(k));
 
     }
 

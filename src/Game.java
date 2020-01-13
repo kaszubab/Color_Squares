@@ -134,7 +134,6 @@ public class Game extends Application {
                     timeline1.play();
 
 
-
                 }
             }
         });
@@ -177,13 +176,19 @@ public class Game extends Application {
         Stage oneGenerator = new Stage();
 
 
-        timeline1 = new Timeline(new KeyFrame(javafx.util.Duration.seconds(0.5), new EventHandler<ActionEvent>() {
+        timeline1 = new Timeline(new KeyFrame(javafx.util.Duration.seconds(0.1), new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
 
                 if (currentPlayer == game.playerCount) {
 
-                    map.makeSingleTurn();
+                    if (game.randomized) {
+
+                        map.makeSingleRandomTurn();
+                    }
+                    else {
+                        map.makeSingleTurn();
+                    }
 
                     if (map.isGameFinished()) {
 
@@ -241,7 +246,7 @@ public class Game extends Application {
         for (int i = 0; i < currentPlayer; i++) {
             Text field1 = new Text();
             field1.setText("Player " + i + " : " + map.getPlayerTilesCount(i));
-            field1.setFont(Font.font("Comic Sans",20));
+            field1.setFont(Font.font("Comic Sans MS",20));
             field1.setFill(GUI.playerToColor(i));
             box1.getChildren().add(field1);
         }

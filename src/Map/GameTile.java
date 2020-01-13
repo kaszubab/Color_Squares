@@ -21,7 +21,7 @@ public class   GameTile {
         this.obstacle = true;
     }
 
-    private boolean isOccupied () {
+    public boolean isOccupied () {
         return this.occupiedByPlayer != -1;
     }
 

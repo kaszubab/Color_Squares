@@ -53,7 +53,7 @@ public class GameGUI implements IMapObserver{
             case 2:
                 return Color.BLUE;
             case 3:
-                return Color.PINK;
+                return Color.ORANGE;
         }
         return null;
     }
